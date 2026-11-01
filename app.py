@@ -3,14 +3,14 @@ import paho.mqtt.client as paho
 import streamlit as st
 import json
 import platform
-import time
 
 # ---------------- CONFIGURACIÓN ----------------
 
 st.set_page_config(
     page_title="MQTT Control Center",
     page_icon="⚡",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
 broker = "157.230.214.127"
@@ -44,13 +44,32 @@ def enviar_mensaje(topic, data):
 st.markdown("""
 <style>
 
-/* Fondo general */
-.stApp {
+/* Fondo general de toda la pantalla */
+html, body, .stApp {
     background:
-        radial-gradient(circle at 10% 10%, #142b4b 0%, transparent 35%),
-        radial-gradient(circle at 90% 80%, #25204b 0%, transparent 35%),
-        #080d19;
+        radial-gradient(ellipse at 15% 15%, rgba(20, 55, 100, 0.55), transparent 45%),
+        radial-gradient(ellipse at 85% 85%, rgba(65, 35, 110, 0.45), transparent 45%),
+        linear-gradient(135deg, #080d19 0%, #0c1629 50%, #080d19 100%) !important;
+    background-attachment: fixed !important;
     color: #f1f5f9;
+    min-height: 100vh;
+}
+
+/* Eliminar fondos blancos internos */
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"],
+[data-testid="stHeader"],
+[data-testid="stBottom"],
+[data-testid="stMainBlockContainer"] {
+    background: transparent !important;
+}
+
+/* Ocupar todo el ancho de la pantalla */
+.stMainBlockContainer,
+.block-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 2rem 5% 3rem 5% !important;
 }
 
 /* Ocultar menú y footer */
@@ -58,62 +77,55 @@ st.markdown("""
     visibility: hidden;
 }
 
-/* Contenedor principal */
-.block-container {
-    max-width: 1100px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-}
-
 /* Encabezado */
 .header {
     text-align: center;
-    padding: 30px 10px 35px 10px;
+    padding: 35px 10px 35px 10px;
 }
 
 .header-icon {
-    font-size: 48px;
+    font-size: 55px;
     margin-bottom: 8px;
     filter: drop-shadow(0 0 15px #00d9ff);
 }
 
 .header h1 {
     color: white;
-    font-size: 42px;
+    font-size: 45px;
     font-weight: 800;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     margin: 0;
 }
 
 .header p {
     color: #8ca3c4;
     font-size: 14px;
-    letter-spacing: 3px;
-    margin-top: 10px;
+    letter-spacing: 4px;
+    margin-top: 12px;
 }
 
-/* Etiquetas de sección */
+/* Títulos de sección */
 .section-title {
     color: #a8bad5;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 2px;
-    margin: 15px 0;
+    margin: 20px 0;
 }
 
 /* Tarjetas */
 div[data-testid="stVerticalBlockBorderWrapper"] {
-    background: rgba(18, 30, 52, 0.78);
-    border: 1px solid rgba(105, 150, 205, 0.2);
-    border-radius: 20px;
-    padding: 20px;
+    background: rgba(18, 30, 52, 0.78) !important;
+    border: 1px solid rgba(105, 150, 205, 0.25) !important;
+    border-radius: 20px !important;
+    padding: 22px !important;
     box-shadow: 0 12px 35px rgba(0,0,0,0.25);
 }
 
 /* Botones */
 .stButton > button {
     width: 100%;
-    height: 58px;
+    height: 60px;
     border-radius: 13px;
     border: 1px solid #355477;
     background: linear-gradient(135deg, #172d4c, #203e61);
@@ -127,20 +139,20 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .stButton > button:hover {
     border-color: #00d9ff;
     color: #00e5ff;
-    box-shadow: 0 0 20px rgba(0,217,255,0.2);
+    box-shadow: 0 0 20px rgba(0,217,255,0.25);
     transform: translateY(-2px);
 }
 
 /* Slider */
-.stSlider [data-baseweb="slider"] > div > div {
-    background-color: #00d9ff;
-}
-
 .stSlider label {
     color: #d6e4f5 !important;
 }
 
-/* Texto */
+.stSlider [data-baseweb="slider"] > div > div {
+    background-color: #00d9ff;
+}
+
+/* Textos */
 p, label {
     color: #d6e4f5;
 }
@@ -150,11 +162,12 @@ hr {
     border-color: rgba(120,160,210,0.18);
 }
 
-/* Métrica */
+/* Valor analógico */
 .metric-value {
     color: #00e5ff;
-    font-size: 34px;
+    font-size: 38px;
     font-weight: 800;
+    text-shadow: 0 0 15px rgba(0,217,255,0.25);
 }
 
 .metric-label {
@@ -168,8 +181,29 @@ hr {
     text-align: center;
     color: #627895;
     font-size: 12px;
-    margin-top: 35px;
-    letter-spacing: 1px;
+    margin-top: 45px;
+    letter-spacing: 2px;
+}
+
+/* Código e información */
+code {
+    color: #00e5ff !important;
+    background: rgba(0,217,255,0.08) !important;
+}
+
+/* Ajustes para móviles */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 30px;
+    }
+
+    .block-container {
+        padding: 1rem 4% 2rem 4% !important;
+    }
+
+    .header {
+        padding-top: 20px;
+    }
 }
 
 </style>
@@ -188,6 +222,7 @@ st.markdown("""
 
 st.markdown("---")
 
+
 # ---------------- CONTROL DIGITAL ----------------
 
 st.markdown(
@@ -201,6 +236,7 @@ with col1:
     with st.container(border=True):
         st.markdown("### 🟢 Encender")
         st.markdown("Envía una señal de activación al dispositivo.")
+
         if st.button("⏻  ENCENDER", key="btn_on"):
             if enviar_mensaje("mqtt_b", {"Act1": "ON"}):
                 st.success("Señal ON enviada correctamente")
@@ -209,14 +245,15 @@ with col2:
     with st.container(border=True):
         st.markdown("### 🔴 Apagar")
         st.markdown("Envía una señal de desactivación al dispositivo.")
+
         if st.button("⏻  APAGAR", key="btn_off"):
             if enviar_mensaje("mqtt_h", {"Act1": "OFF"}):
                 st.success("Señal OFF enviada correctamente")
 
 
-st.markdown("<br>", unsafe_allow_html=True)
-
 # ---------------- CONTROL ANALÓGICO ----------------
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 st.markdown(
     '<div class="section-title">02 / CONTROL ANALÓGICO</div>',
@@ -268,6 +305,9 @@ with col_a:
 with col_b:
     st.caption("VERSIÓN DE PYTHON")
     st.markdown(f"`{platform.python_version()}`")
+
+
+# ---------------- PIE DE PÁGINA ----------------
 
 st.markdown("""
 <div class="footer-info">
